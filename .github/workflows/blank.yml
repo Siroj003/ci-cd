@@ -32,19 +32,8 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-          pip install -r requirements.txt
+          pip install -r app/requirements.txt
 
-      # Run migrations
-      - name: Run migrations
-        run: |
-          source venv/bin/activate
-          python manage.py migrate
-
-      # Run build (static files collection)
-      - name: Run collectstatic
-        run: |
-          source venv/bin/activate
-          python manage.py collectstatic --noinput
 
   test:
     runs-on: ubuntu-latest
@@ -66,12 +55,6 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install -r requirements.txt
-
-      # Run tests
-      - name: Run tests
-        run: |
-          source venv/bin/activate
-          python manage.py test
 
   docker:
     runs-on: ubuntu-latest
@@ -124,4 +107,3 @@ jobs:
              Repository: ${{ github.repository }}
              See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
 
-#

@@ -1,87 +1,87 @@
-name: CI/CD Pipeline
+  name: CI/CD Pipeline
 
-on:
-  push:
-    branches:
-      - "main"
-  pull_request:
-    branches:
-      - "main"
-  workflow_dispatch:
+  on:
+    push:
+      branches:
+        - "main"
+    pull_request:
+      branches:
+        - "main"
+    workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+  jobs:
+    build:
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
 
-      # Debug step to confirm directory structure
-      - name: List directory contents
-        run: ls -alh && ls crudproject/
+        # Debug step to confirm directory structure
+        - name: List directory contents
+          run: ls -alh && ls crudproject/
 
-      # Set up Python
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
+        # Set up Python
+        - name: Set up Python
+          uses: actions/setup-python@v4
+          with:
+            python-version: '3.9'
 
-      # Install dependencies
-      - name: Install dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r crudproject/requirements.txt
+        # Install dependencies
+        - name: Install dependencies
+          run: |
+            python -m venv venv
+            source venv/bin/activate
+            pip install -r crudproject/requirements.txt
 
-  docker:
-    runs-on: ubuntu-latest
-    needs: test
+    docker:
+      runs-on: ubuntu-latest
+      needs: [build]
+      
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        # Set up Docker
+        - name: Log in to DockerHub
+          uses: docker/login-action@v2
+          with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Set up Docker
-      - name: Log in to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+        - name: Build and push Docker image
+          run: |
+            docker build -t ${{ secrets.DOCKER_USERNAME }}/django-app:latest .
+            docker push ${{ secrets.DOCKER_USERNAME }}/django-app:latest
 
-      - name: Build and push Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/django-app:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/django-app:latest
+    notify:
+      runs-on: ubuntu-latest
+      needs: [docker]
 
-  notify:
-    runs-on: ubuntu-latest
-    needs: [docker]
+      steps:
+        - name: Telegram Notifications on Success
+          if: ${{ success() }}
+          uses: appleboy/telegram-action@master
+          with:
+            to: ${{ secrets.TELEGRAM_CHAT_ID }}
+            token: ${{ secrets.TELEGRAM_TOKEN }}
+            format: markdown
+            message: |
+              ${{ github.actor }} successfully created commit ✅✅✅:
+              Commit message: ${{ github.event.commits[0].message }}
+              Repository: ${{ github.repository }}
+              See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
 
-    steps:
-      - name: Telegram Notifications on Success
-        if: ${{ success() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: markdown
-          message: |
-            ${{ github.actor }} successfully created commit ✅✅✅:
-             Commit message: ${{ github.event.commits[0].message }}
-             Repository: ${{ github.repository }}
-             See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
-
-      - name: Telegram Notifications on Failure
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: markdown
-          message: |
-            ${{ github.actor }} failed to create commit ❌❌atmen:
-             Commit message: ${{ github.event.commits[0].message }}
-             Repository: ${{ github.repository }}
-             See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+        - name: Telegram Notifications on Failure
+          if: ${{ failure() }}
+          uses: appleboy/telegram-action@master
+          with:
+            to: ${{ secrets.TELEGRAM_CHAT_ID }}
+            token: ${{ secrets.TELEGRAM_TOKEN }}
+            format: markdown
+            message: |
+              ${{ github.actor }} failed to create commit ❌❌atmen:
+              Commit message: ${{ github.event.commits[0].message }}
+              Repository: ${{ github.repository }}
+              See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
 

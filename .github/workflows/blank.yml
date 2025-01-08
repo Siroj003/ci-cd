@@ -59,30 +59,18 @@
       needs: [docker]
 
       steps:
-        - name: Telegram Notifications on Success
-          if: ${{ success() }}
-          uses: appleboy/telegram-action@master
-          with:
-            to: ${{ secrets.TELEGRAM_CHAT_ID }}
-            token: ${{ secrets.TELEGRAM_TOKEN }}
-            format: markdown
-            message: |
-              ${{ github.actor }} successfully created commit ✅✅✅:
-              Commit message: ${{ github.event.commits[0].message }}
-              Repository: ${{ github.repository }}
-              See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
-
-        - name: Telegram Notifications on Failure
-          if: ${{ failure() }}
-          uses: appleboy/telegram-action@master
-          with:
-            to: ${{ secrets.TELEGRAM_CHAT_ID }}
-            token: ${{ secrets.TELEGRAM_TOKEN }}
-            format: markdown
-            message: |
-              ${{ github.actor }} failed to create commit ❌❌:
-              Commit message: ${{ github.event.commits[0].message }}
-              Repository: ${{ github.repository }}
-              See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
-
-##
+      - name: Telegram Notifications
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            ${{ github.actor }} ${{
+              success() && 'successfully' || 'failed to'
+            }} create commit ${{
+              success() && '✅' || '❌'
+            }}:
+            Commit message: ${{ github.event.commits[0].message }}
+            Repository: ${{ github.repository }}
+            See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}

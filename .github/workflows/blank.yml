@@ -55,9 +55,7 @@
             docker push siroj9656/django-app:latest
 
     notify:
-      runs-on: ubuntu-latest
-      needs: [docker]
-
+      runs-on: ubuntu-latest      
       steps:
         - name: Telegram Notifications on Success
           if: ${{ success() }}

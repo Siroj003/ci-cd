@@ -19,7 +19,7 @@ jobs:
 
       # Debug step to confirm directory structure
       - name: List directory contents
-        run: ls -alh
+        run: ls -alh && ls -alh app/
 
       # Set up Python
       - name: Set up Python

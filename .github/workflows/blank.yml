@@ -80,7 +80,7 @@
             token: ${{ secrets.TELEGRAM_TOKEN }}
             format: markdown
             message: |
-              ${{ github.actor }} failed to create commit ❌❌atmen:
+              ${{ github.actor }} failed to create commit ❌❌:
               Commit message: ${{ github.event.commits[0].message }}
               Repository: ${{ github.repository }}
               See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
